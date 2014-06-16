@@ -1,7 +1,8 @@
 import json
 from collections import defaultdict, Counter
-from pandas import DataFrame
+from pandas import DataFrame, Series
 import matplotlib.pyplot as plt
+import numpy as np
 
 def getCounts(seq):
     counts = defaultdict(int)
@@ -32,7 +33,22 @@ def main():
     tz_counts[:10].plot(kind='barh', rot=0)
     plt.show()
 
+    """Pandas Series demo"""
+    results = Series([x.split()[0] for x in frame['a'].dropna()])
+    agents_counts = results.value_counts()
+    print agents_counts[:8]
 
+    cframe = frame[frame['a'].notnull()]
+    os_seq = np.where(cframe['a'].str.contains('Windows'), 'Windows', 'Not Windows')
+    print os_seq[:8]
+    by_tz_os = cframe.groupby(['tz', os_seq])
+    agg_counts = by_tz_os.size().unstack().fillna(0)
+    print agg_counts[:8]
+    indexer = agg_counts.sum(1).argsort()
+    print indexer[:8]
+    counts_subset = agg_counts.take(indexer)[:10]
+    counts_subset.plot(kind='barh', stacked=True)
+    plt.show()
 
 
 if __name__ == '__main__':
